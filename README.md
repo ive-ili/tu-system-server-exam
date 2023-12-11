@@ -1,4 +1,4 @@
-# tu-university-system-server-exam
+# tu-system-server-exam
 Java Tasks Technical University Sofia - Example Exam
 
 Да се реализира сървър за студентска информационна система подобна на уисс.
