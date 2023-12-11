@@ -2,6 +2,27 @@
 out/
 !**/src/main/**/out/
 !**/src/test/**/out/
+*.iml
+*.iws
+*.ipr
+/.idea/
+/.idea_modules/
+.idea/
+.idea_modules/
+.ideaLibraries/
+.ideaMisc.xml
+.ideaVcs.xml
+.ideaWorkspace.xml
+*.log
+*.log.*
+
+# User-specific stuff
+.idea/**/workspace.xml
+.idea/**/tasks.xml
+.idea/**/usage.statistics.xml
+.idea/**/dictionaries
+.idea/**/shelf
+
 
 ### Eclipse ###
 .apt_generated
