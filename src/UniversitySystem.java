@@ -9,7 +9,7 @@ public class UniversitySystem {
     private final ArrayList<User> users;
     private PrintStream printOutStream;
 
-    UniversitySystem() {
+    public UniversitySystem() {
         this.users = new ArrayList<>();
         this.createAdminUser();
     }
