@@ -14,18 +14,36 @@ public class Client {
             System.out.println("Enter password:");
             String password = scanner.nextLine();
 
+            // Send username and password to server
             PrintStream output = new PrintStream(socket.getOutputStream());
             output.println(username + " " + password);
 
+            // Create a separate thread to continuously receive server responses
+            startResponseReaderThread(socket);
+
             while (true) {
-                System.out.println("Enter command:");
                 String command = scanner.nextLine();
                 if (command.equals("exit")) {
                     break;
                 }
+                // Send command to server
                 output.println(command);
             }
         }
     }
 
+    private static void startResponseReaderThread(Socket socket) {
+        Thread responseThread = new Thread(() -> {
+            try {
+                Scanner serverResponse = new Scanner(socket.getInputStream());
+                while (serverResponse.hasNextLine()) {
+                    String response = serverResponse.nextLine();
+                    System.out.println(response);
+                }
+            } catch (IOException e) {
+                System.out.println("Server disconnected");
+            }
+        });
+        responseThread.start();
+    }
 }

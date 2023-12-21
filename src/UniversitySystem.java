@@ -1,4 +1,5 @@
 import java.io.IOException;
+import java.io.PrintStream;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Scanner;
@@ -6,6 +7,7 @@ import java.util.Scanner;
 public class UniversitySystem {
 
     private final ArrayList<User> users;
+    private PrintStream printOutStream;
 
     UniversitySystem() {
         this.users = new ArrayList<>();
@@ -13,9 +15,10 @@ public class UniversitySystem {
     }
 
     public void loginUser(String username, String password, Socket clientSocket) throws IOException {
+        printOutStream = new PrintStream(clientSocket.getOutputStream());
         for (User user : users) {
             if (user.getUsername().equals(username) && user.getPassword().equals(password)) {
-                System.out.println("Logged in successfully!");
+                printOutStream.println("Logged in successfully!");
                 switch (user.getUserType()) {
                     case STUDENT:
                         Student student = (Student) user;
@@ -33,46 +36,46 @@ public class UniversitySystem {
                 return;
             }
         }
-        System.out.println("Invalid username or password!");
-        System.out.println("Please try again!");
+        printOutStream.println("Invalid username or password!");
+        printOutStream.println("Please try again!");
     }
 
 
     public void adminMenu(Administrator admin, Socket clientSocket) throws IOException {
-        System.out.println("Welcome " + admin.getUsername() + "!");
-        System.out.println("Creating new user...");
+        printOutStream.println("Welcome " + admin.getUsername() + "!");
+        printOutStream.println("Creating new user...");
         Scanner scanner = new Scanner(clientSocket.getInputStream());
-        System.out.println("Please enter user type (1 - Student, 2 - Teacher)");
+        printOutStream.println("Please enter user type (1 - Student, 2 - Teacher)");
         int userType = Integer.parseInt(scanner.nextLine());
         switch (userType) {
             case 1:
                 if (createStudentUser(scanner)) {
-                    System.out.println("Student created successfully!");
+                    printOutStream.println("Student created successfully!");
                 } else {
-                    System.out.println("Student creation failed! Please try again!");
+                    printOutStream.println("Student creation failed! Please try again!");
                     createStudentUser(scanner);
                 }
                 break;
             case 2:
                 if (createTeacherUser(scanner)) {
-                    System.out.println("Teacher created successfully!");
+                    printOutStream.println("Teacher created successfully!");
                 } else {
-                    System.out.println("Teacher creation failed! Please try again!");
+                    printOutStream.println("Teacher creation failed! Please try again!");
                     createTeacherUser(scanner);
                 }
                 break;
         }
-        System.out.println("Thank you and goodbye + " + admin.getUsername() + "!");
+        printOutStream.println("Thank you and goodbye + " + admin.getUsername() + "!");
     }
 
     private boolean createStudentUser(Scanner scanner) {
-        System.out.println("Please enter username:");
+        printOutStream.println("Please enter username:");
         String studentUsername = scanner.nextLine();
-        System.out.println("Please enter password:");
+        printOutStream.println("Please enter password:");
         String studentPassword = scanner.nextLine();
-        System.out.println("Please enter faculty number:");
+        printOutStream.println("Please enter faculty number:");
         String facultyNumber = scanner.nextLine();
-        System.out.println("Please enter EGN:");
+        printOutStream.println("Please enter EGN:");
         String egn = scanner.nextLine();
         if (validateStudentCreation(facultyNumber, egn)) {
             Student student = new Student(studentUsername, studentPassword, facultyNumber, egn);
@@ -83,11 +86,11 @@ public class UniversitySystem {
     }
 
     private boolean createTeacherUser(Scanner scanner) {
-        System.out.println("Please enter username:");
+        printOutStream.println("Please enter username:");
         String teacherUsername = scanner.nextLine();
-        System.out.println("Please enter password:");
+        printOutStream.println("Please enter password:");
         String teacherPassword = scanner.nextLine();
-        System.out.println("Please enter email:");
+        printOutStream.println("Please enter email:");
         String email = scanner.nextLine();
         if (validateTeacherCreation(teacherPassword, email)) {
             Teacher teacher = new Teacher(teacherUsername, teacherPassword, email);
@@ -98,12 +101,14 @@ public class UniversitySystem {
     }
 
     boolean validateStudentCreation(String facultyNumber, String egn) {
-        if (facultyNumber.length() != 9) {
-            System.out.println("Faculty number must be 9 digits long!");
+        String facultyNumberRegex = "[1-9]{9}";
+        String egnRegex = "[0-9]{10}";
+        if (!facultyNumber.matches(facultyNumberRegex)) {
+            printOutStream.println("Faculty number must be 9 digits long!");
             return false;
         }
-        if (egn.length() != 10) {
-            System.out.println("EGN must be 10 digits long!");
+        if (!egn.matches(egnRegex)) {
+            printOutStream.println("EGN must be 10 digits long!");
             return false;
         }
         return true;
@@ -111,45 +116,46 @@ public class UniversitySystem {
 
     boolean validateTeacherCreation(String teacherPassword, String email) {
         String emailRegex = "[a-z]+@tu-sofia\\.bg";
+        String passwordRegex = "\\S{5,}";
         if (!email.matches(emailRegex)) {
-            System.out.println("Invalid email!");
+            printOutStream.println("Invalid email!");
             return false;
         }
-        if (teacherPassword.length() < 5) {
-            System.out.println("Password must be at least 5 characters long!");
+        if (!teacherPassword.matches(passwordRegex)) {
+            printOutStream.println("Password must be at least 5 characters long!");
             return false;
         }
         return true;
     }
 
     private void teacherMenu(Teacher teacher, Socket clientSocket) throws IOException {
-        System.out.println("Welcome " + teacher.getUsername() + "!");
+        printOutStream.println("Welcome " + teacher.getUsername() + "!");
         Scanner scanner = new Scanner(clientSocket.getInputStream());
-        System.out.println("Adding new grade...");
+        printOutStream.println("Adding new grade...");
         if (addStudentGrade(teacher, scanner)) {
-            System.out.println("Grade added successfully!");
+            printOutStream.println("Grade added successfully!");
         } else {
-            System.out.println("Grade addition failed! Please try again!");
+            printOutStream.println("Grade addition failed! Please try again!");
             addStudentGrade(teacher, scanner);
         }
-        System.out.println("Thank you and goodbye + " + teacher.getUsername() + "!");
+        printOutStream.println("Thank you and goodbye + " + teacher.getUsername() + "!");
     }
 
     private boolean addStudentGrade(Teacher teacher, Scanner scanner) {
 
-        System.out.println("Please enter faculty number:");
+        printOutStream.println("Please enter faculty number:");
         String facultyNumber = scanner.nextLine();
-        System.out.println("Please enter grade:");
+        printOutStream.println("Please enter grade:");
         double grade = scanner.nextDouble();
         scanner.nextLine();
-        System.out.println("Please enter course:");
+        printOutStream.println("Please enter course:");
         String course = scanner.nextLine();
-        System.out.println("Please enter year:");
+        printOutStream.println("Please enter year:");
         int year = scanner.nextInt();
         scanner.nextLine();
         Student student = findStudentByFacultyNumber(facultyNumber);
         if (student == null) {
-            System.out.println("Student not found!");
+            printOutStream.println("Student not found!");
             return false;
         } else {
             Grade newGrade = new Grade(course, grade, year);
@@ -171,14 +177,14 @@ public class UniversitySystem {
     }
 
     private void studentMenu(Student student) {
-        System.out.println("Welcome " + student.getUsername() + "!");
+        printOutStream.println("Welcome " + student.getUsername() + "!");
         String grades = getStudentGrades(student);
-        System.out.println(grades);
-        System.out.println("Thank you and goodbye + " + student.getUsername() + "!");
+        printOutStream.println(grades);
+        printOutStream.println("Thank you and goodbye + " + student.getUsername() + "!");
     }
 
     private String getStudentGrades(Student student) {
-        System.out.println("Your grades are:");
+        printOutStream.println("Your grades are:");
         ArrayList<Grade> studentGrades = student.getStudentGrades();
         studentGrades.sort((gradeOne, gradeTwo) -> {
             if (gradeOne.getYear() == gradeTwo.getYear()) {
